@@ -2,17 +2,18 @@ package main
 
 import (
 	"fmt"
+	"github.com/RakhimovAns/wallet/pkg/types"
 	"github.com/RakhimovAns/wallet/pkg/wallet"
+	"reflect"
 )
 
 func main() {
-	svc := &wallet.Service{}
+	svc := wallet.Service{}
 	account, err := svc.RegisterAccounts("+9920000001")
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-
 	err = svc.Deposit(account.ID, 10)
 	if err != nil {
 		switch err {
@@ -23,5 +24,12 @@ func main() {
 		}
 		return
 	}
-	fmt.Println(account.Balance)
+	payment, err := svc.Pay(account.ID, 9, "auto")
+	var pay *types.Payment
+	pay, _ = svc.Repeat(payment.ID)
+	if reflect.DeepEqual(pay, payment) == false {
+		fmt.Println("It is not working")
+	} else {
+		fmt.Println("it is working")
+	}
 }
