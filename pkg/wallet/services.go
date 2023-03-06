@@ -13,7 +13,7 @@ import (
 
 type Service struct {
 	nextAccountID int64
-	accounts      []*types.Account
+	Accounts      []*types.Account
 	payments      []*types.Payment
 	favorite      []*types.Favorite
 }
@@ -65,7 +65,7 @@ func (s *Service) addAccount(data testAccount) (*types.Account, []*types.Payment
 }
 
 func (s *Service) RegisterAccounts(phone types.Phone) (*types.Account, error) {
-	for _, account := range s.accounts {
+	for _, account := range s.Accounts {
 		if account.Phone == phone {
 			return nil, ErrPhoneRegistered
 		}
@@ -76,7 +76,7 @@ func (s *Service) RegisterAccounts(phone types.Phone) (*types.Account, error) {
 		Phone:   phone,
 		Balance: 0,
 	}
-	s.accounts = append(s.accounts, account)
+	s.Accounts = append(s.Accounts, account)
 	return account, nil
 }
 func (s *Service) Deposit(accountID int64, amount types.Money) error {
@@ -84,7 +84,7 @@ func (s *Service) Deposit(accountID int64, amount types.Money) error {
 		return ErrAmountMustBePositive
 	}
 	var account *types.Account
-	for _, acc := range s.accounts {
+	for _, acc := range s.Accounts {
 		if acc.ID == accountID {
 			account = acc
 			break
@@ -102,7 +102,7 @@ func (s *Service) Pay(accountID int64, amount types.Money, category types.Paymen
 	}
 	var account *types.Account
 
-	for _, acc := range s.accounts {
+	for _, acc := range s.Accounts {
 		if acc.ID == accountID {
 			account = acc
 			break
@@ -129,7 +129,7 @@ func (s *Service) Pay(accountID int64, amount types.Money, category types.Paymen
 
 func (s *Service) FindAccountByID(accountID int64) (*types.Account, error) {
 	var account *types.Account
-	for _, acc := range s.accounts {
+	for _, acc := range s.Accounts {
 		if acc.ID == accountID {
 			account = acc
 			break
@@ -238,8 +238,8 @@ func (s *Service) ExportToFile(path string) error {
 			log.Print(err)
 		}
 	}()
-	for _, acc := range s.accounts {
-		_, err := file.Write([]byte(strconv.FormatInt(int64(acc.ID), 10) + ";" + string(acc.Phone) + "\n"))
+	for _, acc := range s.Accounts {
+		_, err := file.Write([]byte(strconv.FormatInt(int64(acc.ID), 10) + ";" + string(acc.Phone) + "|"))
 		if err != nil {
 			return err
 		}
@@ -271,9 +271,23 @@ func (s *Service) ImportFromFile(path string) error {
 		content = append(content, buf[:read]...)
 	}
 	data := string(content)
-	fmt.Println(data)
+	temp := ""
 	for _, i := range data {
-		fmt.Println(i)
+		temp += string(i)
+		if string(i) == "|" {
+			temporary := ""
+			for _, j := range temp {
+				temporary += string(j)
+				if string(j) == ";" {
+					temporary = ""
+				}
+			}
+			runes := []rune(temporary)
+			runes = runes[:len(runes)-1]
+			temporary = string(runes)
+			s.RegisterAccounts(types.Phone(temporary))
+			temp = ""
+		}
 	}
 	return nil
 }
