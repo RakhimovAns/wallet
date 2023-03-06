@@ -5,6 +5,10 @@ import (
 	"fmt"
 	"github.com/RakhimovAns/wallet/pkg/types"
 	"github.com/google/uuid"
+	"io"
+	"log"
+	"os"
+	"strconv"
 )
 
 type Service struct {
@@ -222,4 +226,54 @@ func (s *Service) PayFromFavorite(favoriteID string) (*types.Payment, error) {
 		return nil, fmt.Errorf("Favorite wasn't found")
 	}
 	return s.Pay(Favorite.AccountID, Favorite.Amount, Favorite.Category)
+}
+
+func (s *Service) ExportToFile(path string) error {
+	file, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if cerr := file.Close(); cerr != nil {
+			log.Print(err)
+		}
+	}()
+	for _, acc := range s.accounts {
+		_, err := file.Write([]byte(strconv.FormatInt(int64(acc.ID), 10) + ";" + string(acc.Phone) + "\n"))
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s *Service) ImportFromFile(path string) error {
+	file, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if cerr := file.Close(); cerr != nil {
+			log.Print(err)
+		}
+	}()
+	content := make([]byte, 0)
+	buf := make([]byte, 4)
+	for {
+		read, err := file.Read(buf)
+		if err == io.EOF {
+			content = append(content, buf[:read]...)
+			break
+		}
+		if err != nil {
+			return err
+		}
+		content = append(content, buf[:read]...)
+	}
+	data := string(content)
+	fmt.Println(data)
+	for _, i := range data {
+		fmt.Println(i)
+	}
+	return nil
 }

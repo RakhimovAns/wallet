@@ -1,6 +1,7 @@
 package wallet
 
 import (
+	"fmt"
 	"github.com/RakhimovAns/wallet/pkg/types"
 	"github.com/google/uuid"
 	"reflect"
@@ -137,4 +138,15 @@ func TestService_Repeat_Success(t *testing.T) {
 		t.Errorf("They should be not equal,return = %v", err)
 		return
 	}
+}
+
+func TestService_PayFromFavorite_rules(t *testing.T) {
+	s := Service{}
+	_, _, err := s.addAccount(defaultTestAccount)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	payment, err := s.FavoritePayment(uuid.New().String(), "megafon")
+	fmt.Println(payment.ID)
 }
