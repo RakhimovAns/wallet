@@ -291,3 +291,74 @@ func (s *Service) ImportFromFile(path string) error {
 	}
 	return nil
 }
+
+func (s *Service) Export(dir string) error {
+	if len(s.payments) != 0 {
+		PathForPayments := dir + "payments.dump"
+		file, err := os.Open(PathForPayments)
+		if err != nil {
+			file, err = os.Create(PathForPayments)
+			if err != nil {
+				return err
+			}
+		}
+		defer func() {
+			if cerr := file.Close(); cerr != nil {
+				log.Print(err)
+			}
+		}()
+
+		for _, payment := range s.payments {
+			_, err := file.Write([]byte("Payment's ID is " + payment.ID + " Payment's status is " + string(payment.Status) + " Payment's Category is " + string(payment.Category) + "Payment's amount is " + strconv.FormatInt(int64(payment.Amount), 10) + "Payment's AccountID is " + strconv.FormatInt(int64(payment.AccountID), 10) + "\n"))
+			if err != nil {
+				return err
+			}
+		}
+	}
+	if len(s.favorite) != 0 {
+		PathForFavorites := dir + "favorites.dump"
+		file, err := os.Open(PathForFavorites)
+		if err != nil {
+			file, err = os.Create(PathForFavorites)
+			if err != nil {
+				return err
+			}
+		}
+		if err != nil {
+			return err
+		}
+		defer func() {
+			if cerr := file.Close(); cerr != nil {
+				log.Print(err)
+			}
+		}()
+		for _, favorites := range s.favorite {
+			_, err := file.Write([]byte(" FavPayment's ID is " + favorites.ID + " FavPayment's Category is " + string(favorites.Category) + " FavPayment's amount is " + strconv.FormatInt(int64(favorites.Amount), 10) + " FavPayment's AccountID is " + strconv.FormatInt(int64(favorites.AccountID), 10) + "\n"))
+			if err != nil {
+				return err
+			}
+		}
+	}
+	if len(s.Accounts) != 0 {
+		PathForAccount := dir + "accounts.dump"
+		file, err := os.Open(PathForAccount)
+		if err != nil {
+			file, err = os.Create(PathForAccount)
+			if err != nil {
+				return err
+			}
+		}
+		defer func() {
+			if cerr := file.Close(); cerr != nil {
+				log.Print(err)
+			}
+		}()
+		for _, accounts := range s.Accounts {
+			_, err := file.Write([]byte(" account's ID is " + strconv.FormatInt(int64(accounts.ID), 10) + " account's phone is " + string(accounts.Phone) + "account's balance is" + strconv.FormatInt(int64(accounts.Balance), 10)))
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
